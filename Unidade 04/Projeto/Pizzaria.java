@@ -1,184 +1,155 @@
 package Projeto;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import Projeto.models.Cliente;
+import Projeto.models.Pedido;
+import Projeto.services.*;
+import java.util.*;
 
-import Projeto.Pizza.TamanhoPizza;
-
+/**
+ * SISTEMA DE GERENCIAMENTO DE PIZZARIA
+ * Classe principal com menu e coordenação dos services
+ * 
+ * ALTERAÇÕES IMPLEMENTADAS:
+ * - Requisito 1: Alterar Pedido (PedidoService)
+ * - Requisito 2: Relatórios com Grafos (RelatorioService)  
+ * - Requisito 3: Cálculo de Frete (FreteService)
+ */
 public class Pizzaria {
+    
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         List<Cliente> listaClientes = new ArrayList<>();
         List<Pedido> listaPedidos = new ArrayList<>();
-
         boolean continuar = true;
-        while (continuar) {
-            System.out.println();
-            System.out.println("Escolha uma opção: ");
-            System.out.println("1 - Fazer um novo pedido");
-            System.out.println("2 - Alterar um pedido");
-            System.out.println("3 - Adicionar um cliente");
-            System.out.println("4 - Gerar relatório de vendas");
-            System.out.println("5 - Gerar lista de clientes");
-            System.out.println("9 - Sair");
 
-            System.out.print("Opção: ");
+        System.out.println("=== SISTEMA DE PIZZARIA ===");
+        System.out.println("Bem-vindo ao sistema modularizado!");
+        System.out.println();
+
+        while (continuar) {
+            // Exibir menu principal organizado
+            exibirMenu();
+            
             int opcao = scanner.nextInt();
-            scanner.nextLine();
-            System.out.println();
+            scanner.nextLine(); // Limpar buffer
 
             switch (opcao) {
                 case 1:
-                    fazerPedido(scanner, listaPedidos, listaClientes);
+                    // NOVO: Usando PedidoService
+                    PedidoService.criarNovoPedido(scanner, listaPedidos, listaClientes);
                     break;
+                    
                 case 2:
-                    alterarPedido();
+                    // ALTERAÇÃO 1: Implementada - Alterar Pedido
+                    PedidoService.alterarPedido(scanner, listaPedidos);
                     break;
+                    
                 case 3:
-                    listaClientes.add(adicionarCliente(scanner)); 
-                    System.out.println("Cliente adicionado com sucesso!");
+                    // Funcionalidade original mantida
+                    listaClientes.add(adicionarCliente(scanner));
                     break;
+                    
                 case 4:
-                    gerarRelatorio();
+                    // ALTERAÇÃO 2: Implementada - Relatório com Grafos
+                    RelatorioService.gerarRelatorio(listaPedidos);
                     break;
+                    
                 case 5:
+                    // Funcionalidade original mantida
                     gerarListaClientes(listaClientes);
                     break;
+                    
+                case 6:
+                    // ALTERAÇÃO 3: Implementada - Calcular Frete
+                    FreteService.calcularFreteEntrega(scanner, listaPedidos);
+                    break;
+                    
                 case 9:
-                    System.out.println("Até amanha...");
+                    System.out.println("Obrigado por usar nosso sistema!");
+                    if (!listaPedidos.isEmpty()) {
+                        System.out.println("Relatório final da sessão:");
+                        RelatorioService.gerarRelatorio(listaPedidos);
+                    }
+                    System.out.println("Até amanhã!");
                     continuar = false;
-                    scanner.close();
                     break;
+                    
                 default:
-                    break;
+                    System.out.println("Opção inválida! Tente novamente.");
             }
-        }
-    
-    }
-
-    private static void fazerPedido(Scanner scanner, List<Pedido> listaPedidos, List<Cliente> listaClientes) {
-        List<Pizza> pizzas = new ArrayList<>();
-        System.out.println("FAZER PEDIDO");
-
-        int x = 1;
-        System.out.println("Selecione um cliente: ");
-        for (Cliente cliente : listaClientes) {
-            System.out.println(x+" - "+cliente.getNome());
-            x++;
-        }
-        System.out.print("Opção: ");
-        int cliente = scanner.nextInt();
-        scanner.nextLine();
-
-        boolean continuar = true;
-        while (continuar) {
-            x = 1;
-            System.out.println("Qual o tamanho da pizza? ");
-            System.out.println("Selecione um tamanho: ");
-            for (TamanhoPizza tamanhos : Pizza.TamanhoPizza.values()) {
-                System.out.println(x+" - "+tamanhos);
-                x++;
-            }
-            System.out.print("Opção: ");
-            int tamanho = scanner.nextInt();
-            scanner.nextLine();
-
-            int quantiSabores = 0;
-            while (quantiSabores < 1 || quantiSabores > 4) {
-                System.out.println("Digite a quantidade de sabores: 1 - 4 ");
-                System.out.print("Opção: ");
-                quantiSabores = scanner.nextInt();
+            
+            // Pequena pausa para melhor experiência
+            if (continuar) {
+                System.out.println("\nPressione Enter para continuar...");
                 scanner.nextLine();
-            }
-
-            Cardapio cardapio = new Cardapio();
-            List<String> saboresList = new ArrayList<>();
-            List<String> saboresSelect = new ArrayList<>();
-
-            for (int i = 0; i < quantiSabores; i++) {
-                System.out.println("Selecione um sabor: ");
-
-                x = 1;
-                for (String sabor : cardapio.getCardapio().keySet()) {
-                    saboresList.add(sabor);
-                    System.out.println(x+" - "+sabor);
-                    x++;
-                }
-                System.out.print("Opção: ");
-                int opcao = scanner.nextInt();
-                scanner.nextLine();
-                saboresSelect.add(saboresList.get(opcao-1));
-            }
-
-            Pizza pizza = new Pizza(saboresSelect, cardapio.getPrecoJusto(saboresSelect), TamanhoPizza.getByIndex(tamanho-1));
-            pizzas.add(pizza);
-
-            System.out.println("Pizza cadastrada com sucesso!");
-            System.out.println();
-            System.out.println("Deseja cadastrar mais uma pizza no pedido?");
-            System.out.print("1 - Sim, 2 - Não: ");
-            int opcao = scanner.nextInt();
-            scanner.nextLine();
-
-            if(opcao != 1){
-                continuar = false;
+                System.out.println("\n" + "=".repeat(50));
             }
         }
-        Pedido pedido = new Pedido(listaPedidos.size()+1,listaClientes.get(cliente-1), pizzas, somarPizzas(pizzas));
-        listaPedidos.add(pedido);
+        
+        scanner.close();
     }
 
-    private static double somarPizzas(List<Pizza> pizzas) {
-        double valorTotal = 0;
-        for (Pizza pizza : pizzas) {
-            valorTotal += pizza.getPreco();
-        }
-        return valorTotal;
+    /**
+     * Exibe menu principal organizado
+     */
+    private static void exibirMenu() {
+        System.out.println("\n=== MENU PRINCIPAL ===");
+        System.out.println("1 - Fazer um novo pedido");
+        System.out.println("2 - Alterar um pedido [IMPLEMENTADO]");
+        System.out.println("3 - Adicionar um cliente");
+        System.out.println("4 - Gerar relatorio [IMPLEMENTADO]");
+        System.out.println("5 - Listar clientes");
+        System.out.println("6 - Calcular frete [IMPLEMENTADO]");
+        System.out.println("9 - Sair do sistema");
+        System.out.print("Escolha uma opcao: ");
     }
 
-    private static void alterarPedido() {
-        System.out.println("Alterar pedido");
-    }
-
+    /**
+     * Adiciona novo cliente ao sistema
+     * Funcionalidade original do projeto
+     */
     private static Cliente adicionarCliente(Scanner scanner) {
-        System.out.println("ADICIONAR CLIENTE");
-        System.out.println();
-        System.out.print("Digite o nome do cliente: ");
+        System.out.println("\n=== CADASTRO DE CLIENTE ===");
+        
+        System.out.print("Nome do cliente: ");
         String nome = scanner.nextLine();
-        System.out.println();
-        System.out.print("Digite o endereço do cliente: ");
-        String endereco = scanner.nextLine();
-        System.out.println();
-        System.out.print("Digite o telefone do cliente: ");
+        
+        System.out.print("Telefone: ");
         String telefone = scanner.nextLine();
-        System.out.println();
-        System.out.print("Digite o email do cliente: ");
+        
+        System.out.print("Endereco: ");
+        String endereco = scanner.nextLine();
+
+        System.out.print("Email: ");
         String email = scanner.nextLine();
-        System.out.println();
-
-        Cliente cliente = new Cliente(nome, endereco, telefone, email);
-        return cliente;
+        
+        Cliente novoCliente = new Cliente(nome,endereco, telefone, email);
+        
+        System.out.println("Cliente '" + nome + "' cadastrado com sucesso!");
+        
+        return novoCliente;
     }
 
-    private static void gerarRelatorio() {
-        System.out.println("Gerar relatorio");
-    }
-
+    /**
+     * Exibe lista de clientes cadastrados
+     * Funcionalidade original do projeto
+     */
     private static void gerarListaClientes(List<Cliente> listaClientes) {
-        int x = 1;
+        System.out.println("\n=== LISTA DE CLIENTES ===");
+        
         if (listaClientes.isEmpty()) {
-            System.out.println("Lista de clientes esta vazia");
-        } else {
-            for (Cliente cliente : listaClientes) {
-                System.out.println("Cliente "+x);
-                System.out.println(cliente.getNome());
-                System.out.println(cliente.getEndereco());
-                System.out.println(cliente.getTelefone());
-                System.out.println(cliente.getEmail());
-                System.out.println();
-                x++;
-            }
+            System.out.println("Nenhum cliente cadastrado.");
+            return;
         }
+        
+        System.out.println("Total de clientes: " + listaClientes.size());
+        for (int i = 0; i < listaClientes.size(); i++) {
+            Cliente cliente = listaClientes.get(i);
+            System.out.println((i + 1) + ". " + cliente.getNome() + 
+                              " - " + cliente.getTelefone() + 
+                              " - " + cliente.getEndereco());
+        }
+
+         System.out.println("Total de clientes: " + listaClientes.size());         
     }
 }

@@ -1,4 +1,4 @@
-package Projeto;
+package Projeto.models;
 
 import java.util.ArrayList;
 import java.util.HashMap;
